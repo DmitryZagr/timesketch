@@ -25,3 +25,5 @@ tests-coverage.txt
 # Exclude Vagrant runtime files
 vagrant/.vagrant/
 vagrant/*.log
+
+docker/data
