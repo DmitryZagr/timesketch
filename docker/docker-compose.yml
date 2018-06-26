@@ -1,9 +1,10 @@
 version: '3'
 services:
   timesketch:
-    build:
-      context: ../
-      dockerfile: ./docker/Dockerfile
+    # build:
+    #   context: ../
+    #   dockerfile: ./docker/Dockerfile
+    image: dmitryzagr/timesketch:20180613
     ports:
       - "80:80"
     links:
