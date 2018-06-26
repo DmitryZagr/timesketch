@@ -172,9 +172,9 @@ spec:
       - image: postgres
         name: timesketch-postgres
         env:
-        - name: POSTGRESQL_PASSWORD
+        - name: POSTGRES_PASSWORD
           value: "password"
-        - name: POSTGRESQL_USER
+        - name: POSTGRES_USER
           value: "timesketch"
         ports:
         - containerPort: 5432
