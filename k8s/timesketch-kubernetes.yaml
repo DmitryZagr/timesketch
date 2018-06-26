@@ -1,0 +1,320 @@
+########################
+# TIMESKETCH
+########################
+apiVersion: v1
+kind: Service
+metadata:
+  name: timesketch
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: timesketch
+    tier: timesketch
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timesketch
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  selector:
+    matchLabels:
+      app: timesketch
+  serviceName: timesketch
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: timesketch
+        tier: timesketch  
+    spec:
+      containers:
+      - name: timesketch
+        image: dmitryzagr/timesketch:20180613
+        env:
+        - name: POSTGRES_USER
+          value: "timesketch"
+        - name: POSTGRES_PASSWORD
+          value: "password"
+        - name: POSTGRES_ADDRESS
+          value: "timesketch-postgres"
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: ELASTIC_ADDRESS
+          value: "timesketch-elasticsearch"
+        - name: ELASTIC_PORT
+          value: "9200"
+        - name: REDIS_ADDRESS
+          value: "timesketch-redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: NEO4J_ADDRESS
+          value: "timesketch-neo4j"
+        - name: NEO4J_PORT
+          value: "7474"
+        - name: TIMESKETCH_USER
+          value: "admin"
+        - name: TIMESKETCH_PASSWORD
+          value: "admin"
+        ports:
+        - containerPort: 80
+          name: timesketch
+      nodeSelector:
+        server-type: datanode
+---
+############################
+# ELASTICSEARCH
+############################    
+apiVersion: v1
+kind: Service
+metadata:
+  name: timesketch-elasticsearch
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  ports:
+    - port: 9200
+      name: timesketch-elasticsearch-1
+    - port: 9300
+      name: timesketch-elasticsearch-2
+  selector:
+    app: timesketch
+    tier: timesketch-elasticsearch
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timesketch
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  selector:
+    matchLabels:
+      app: timesketch
+  serviceName: timesketch-elasticsearch
+  template:
+    metadata:
+      labels:
+        app: timesketch
+        tier: timesketch-elasticsearch
+    spec:
+      containers:
+      - image: dmitryzagr/timesketch-elasticsearch:20180613
+        name: timesketch-elasticsearch
+        ports:
+        - containerPort: 9200
+          name: timesketch-elasticsearch-1
+        - containerPort: 9300
+          name: timesketch-elasticsearch-2
+        volumeMounts:
+        - name: timesketch-elasticsearch-data
+          mountPath: /usr/share/elasticsearch/data/elasticsearch
+      nodeSelector:
+        server-type: datanode
+  volumeClaimTemplates:
+  - metadata:
+      name: timesketch-elasticsearch-data
+    spec:
+      storageClassName: cephfs
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+############################
+# POSTGRESQL
+############################    
+apiVersion: v1
+kind: Service
+metadata:
+  name: timesketch-postgres
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: timesketch
+    tier: timesketch-postgres
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timesketch-postgres
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  selector:
+    matchLabels:
+      app: timesketch
+  serviceName: timesketch-postgres
+  template:
+    metadata:
+      labels:
+        app: timesketch
+        tier: timesketch-postgres
+    spec:
+      containers:
+      - image: postgres
+        name: timesketch-postgres
+        env:
+        - name: POSTGRESQL_PASSWORD
+          value: "timesketch"
+        - name: POSTGRESQL_USER
+          value: "password"
+        ports:
+        - containerPort: 5432
+          name: timesketch-postgres
+        volumeMounts:
+        - name: timesketch-postgres-data
+          mountPath: /var/lib/postgresql/data
+      nodeSelector:
+        server-type: datanode
+  volumeClaimTemplates:
+  - metadata:
+      name: timesketch-postgres-data
+    spec:
+      storageClassName: cephfs
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+########################
+# REDIS
+########################
+apiVersion: v1
+kind: Service
+metadata:
+  name: timesketch-redis
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    app: timesketch
+    tier: timesketch-redis
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timesketch-redis
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  selector:
+    matchLabels:
+      app: timesketch
+  serviceName: timesketch-redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: timesketch
+        tier: timesketch-redis  
+    spec:
+      containers:
+      - name: timesketch-redis
+        image: redis
+        ports:
+        - containerPort: 6379
+          name: timesketch-redis
+        volumeMounts:
+        - name: timesketch-redis-data
+          mountPath: /data
+      nodeSelector:
+        server-type: datanode
+  volumeClaimTemplates:
+  - metadata:
+      name: timesketch-redis-data
+    spec:
+      storageClassName: cephfs
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+########################
+# NEO4J
+########################
+apiVersion: v1
+kind: Service
+metadata:
+  name: timesketch-neo4j
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  ports:
+    - port: 7474
+      name: timesketch-neo4j-1
+    - port: 7687
+      name: timesketch-neo4j-2
+  selector:
+    app: timesketch
+    tier: timesketch-neo4j
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timesketch
+  namespace: cephfs
+  labels:
+    app: timesketch
+spec:
+  selector:
+    matchLabels:
+      app: timesketch
+  serviceName: timesketch-neo4j
+  template:
+    metadata:
+      labels:
+        app: timesketch
+        tier: timesketch-neo4j
+    spec:
+      containers:
+      - image: neo4j
+        name: timesketch-neo4j
+        env:
+        - name: NEO4J_AUTH
+          value: "none"
+        ports:
+        - containerPort: 7474
+          name: timesketch-neo4j-1
+        - containerPort: 7687
+          name: timesketch-neo4j-2
+        volumeMounts:
+        - name: timesketch-neo4j-data
+          mountPath: /var/lib/neo4j/data
+      nodeSelector:
+        server-type: datanode
+  volumeClaimTemplates:
+  - metadata:
+      name: timesketch-neo4j-data
+    spec:
+      storageClassName: cephfs
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
