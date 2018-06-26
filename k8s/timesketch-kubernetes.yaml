@@ -83,9 +83,9 @@ metadata:
 spec:
   ports:
     - port: 9200
-      name: timesketch-elasticsearch-1
+      name: elsearch-1
     - port: 9300
-      name: timesketch-elasticsearch-2
+      name: elsearch-2
   selector:
     app: timesketch
     tier: timesketch-elasticsearch
@@ -114,9 +114,9 @@ spec:
         name: timesketch-elasticsearch
         ports:
         - containerPort: 9200
-          name: timesketch-elasticsearch-1
+          name: elsearch-1
         - containerPort: 9300
-          name: timesketch-elasticsearch-2
+          name: elsearch-2
         volumeMounts:
         - name: timesketch-elasticsearch-data
           mountPath: /usr/share/elasticsearch/data/elasticsearch
@@ -178,7 +178,7 @@ spec:
           value: "password"
         ports:
         - containerPort: 5432
-          name: timesketch-postgres
+          name: postgres-p
         volumeMounts:
         - name: timesketch-postgres-data
           mountPath: /var/lib/postgresql/data
@@ -237,7 +237,7 @@ spec:
         image: redis
         ports:
         - containerPort: 6379
-          name: timesketch-redis
+          name: time-redis
         volumeMounts:
         - name: timesketch-redis-data
           mountPath: /data
@@ -266,9 +266,9 @@ metadata:
 spec:
   ports:
     - port: 7474
-      name: timesketch-neo4j-1
+      name: neo4j-p-1
     - port: 7687
-      name: timesketch-neo4j-2
+      name: neo4j-p-2
   selector:
     app: timesketch
     tier: timesketch-neo4j
@@ -300,9 +300,9 @@ spec:
           value: "none"
         ports:
         - containerPort: 7474
-          name: timesketch-neo4j-1
+          name: neo4j-p-1
         - containerPort: 7687
-          name: timesketch-neo4j-2
+          name: neo4j-p-2
         volumeMounts:
         - name: timesketch-neo4j-data
           mountPath: /var/lib/neo4j/data
