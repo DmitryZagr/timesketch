@@ -94,7 +94,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: timesketch
+  name: timesketch-elasticsearch
   namespace: cephfs
   labels:
     app: timesketch
@@ -277,7 +277,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: timesketch
+  name: timesketch-neo4j
   namespace: cephfs
   labels:
     app: timesketch
